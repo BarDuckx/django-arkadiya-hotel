@@ -1,0 +1,113 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="checkout-wrapper">
+    <h2 class="checkout-title serif">Оформление бронирования</h2>
+
+    <div class="checkout-grid">
+        <div class="checkout-main">
+            <form method="post" action="{% url 'process_checkout' %}" id="checkout-form">
+                {% csrf_token %}
+
+                <div class="checkout-section">
+                    <h3 class="serif section-subtitle">Данные гостя</h3>
+                    <div class="form-fields-grid">
+                        {% for field in form %}
+                            <div class="input-wrapper">
+                                <label>{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if services %}
+                <div class="checkout-section">
+                    <h3 class="serif section-subtitle">Дополнительные услуги</h3>
+                    <div class="services-list">
+                        {% for service in services %}
+                        <div class="service-card" data-tooltip="{{ service.description }}">
+                            <label class="service-label">
+                                <input type="checkbox" name="services" value="{{ service.id }}"
+                                       class="service-checkbox" data-price="{{ service.price|stringformat:'f' }}">
+                                <div class="service-info">
+                                    <span class="service-name">{{ service.name }}</span>
+                                </div>
+                                <span class="service-price">+ {{ service.price|floatformat:0 }} ₽</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn-full checkout-submit-btn">Подтвердить бронирование</button>
+            </form>
+        </div>
+
+        <div class="checkout-sidebar">
+            <div class="summary-card">
+                <h3 class="serif" style="margin-bottom: 1.5rem; font-size: 1.8rem; color: var(--primary);">Ваша бронь</h3>
+
+                <div class="summary-details">
+                    <p><strong>Номер:</strong> {{ room.category.name }} (№{{ room.number }})</p>
+                    <p><strong>Заезд:</strong> {{ check_in }}</p>
+                    <p><strong>Выезд:</strong> {{ check_out }}</p>
+                    <p><strong>Гостей:</strong> {{ guests }}</p>
+                    <p><strong>Ночей:</strong> {{ nights }}</p>
+                </div>
+
+                <hr class="summary-divider">
+
+                <div class="summary-calc">
+                    <div class="summary-row">
+                        <span>Проживание:</span>
+                        <span>{{ total_price|floatformat:0 }} ₽</span>
+                    </div>
+                    <div class="summary-row" style="color: var(--primary); font-weight: 500;">
+                        <span>Доп. услуги:</span>
+                        <span id="services-total-val">0 ₽</span>
+                    </div>
+                </div>
+
+                <hr class="summary-divider">
+
+                <div class="summary-row total-row">
+                    <span>Итого:</span>
+                    <span id="final-total-val">{{ total_price|floatformat:0 }} ₽</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const baseTotalStr = "{{ total_price|stringformat:'f' }}";
+    const baseTotal = parseFloat(baseTotalStr) || 0;
+
+    const checkboxes = document.querySelectorAll('.service-checkbox');
+    const servicesDisplay = document.getElementById('services-total-val');
+    const finalDisplay = document.getElementById('final-total-val');
+
+    function updatePrice() {
+        let servicesTotal = 0;
+
+        document.querySelectorAll('.service-checkbox:checked').forEach(cb => {
+            const price = parseFloat(cb.dataset.price) || 0;
+            servicesTotal += price;
+        });
+
+        const finalTotal = baseTotal + servicesTotal;
+
+        if(servicesDisplay) servicesDisplay.textContent = servicesTotal.toLocaleString('ru-RU') + " ₽";
+        if(finalDisplay) finalDisplay.textContent = finalTotal.toLocaleString('ru-RU') + " ₽";
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updatePrice));
+
+    updatePrice();
+});
+</script>
+{% endblock %}

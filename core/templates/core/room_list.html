@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h1 class="section-title">Номерной фонд</h1>
+
+<div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 4rem;">
+    <a href="?category=" class="btn-outline-dark">Все номера</a>
+    {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="btn-outline-dark">{{ cat.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="rooms-grid" id="roomsGrid">
+    {% for room in rooms %}
+    <a href="{% url 'room_detail' room.id %}"
+       class="room-card {% if forloop.counter > 6 %}hidden-room{% endif %}"
+       {% if forloop.counter > 6 %}style="display: none;"{% endif %}>
+        <div class="room-card-img-wrapper">
+            {% if room.image %}
+                <img src="{{ room.image.url }}" alt="Фото">
+            {% else %}
+                <img src="https://placehold.co/800x1000/eaeaea/7a7a7a?text=Фото+номера" alt="Заглушка">
+            {% endif %}
+        </div>
+        <div class="room-card-info">
+            <div>
+                <h3>{{ room.category.name }}</h3>
+                <p>Вместимость: {{ room.capacity }} чел. | №{{ room.number }}</p>
+            </div>
+            <div class="room-price">{{ room.price_per_night }} ₽</div>
+        </div>
+    </a>
+    {% empty %}
+        <p style="text-align: center; grid-column: 1/-1;">Номера не найдены.</p>
+    {% endfor %}
+</div>
+
+{% if rooms|length > 6 %}
+<div id="loadMoreContainer" style="text-align: center; margin-top: 4rem;">
+    <button class="btn-outline-dark" onclick="showMoreRooms()">Загрузить еще</button>
+</div>
+{% endif %}
+
+<script src="{% static 'core/js/main.js' %}"></script>
+{% endblock %}

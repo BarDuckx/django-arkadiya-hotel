@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="auth-wrapper">
+    <div class="form-card">
+        <h2>Вход</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div style="margin-bottom: 1rem;">
+                    <label>{{ field.label }}</label>
+                    {{ field }} {% if field.errors %}<div style="color: red; font-size: 0.8rem;">{{ field.errors }}</div>{% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn-full">Войти</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

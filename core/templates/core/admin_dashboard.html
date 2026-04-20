@@ -1,0 +1,277 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="admin-header"
+     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+    <h1 style="color: var(--primary);">Панель управления</h1>
+</div>
+
+<div style="display: flex; gap: 1rem; margin-bottom: 3rem; flex-wrap: wrap;">
+    <button class="tab-btn active" onclick="openTab('analytics', this)">Аналитика</button>
+    <button class="tab-btn" onclick="openTab('bookings', this)">Бронирования ({{ bookings|length }})</button>
+    <button class="tab-btn" onclick="openTab('rooms', this)">Номера ({{ rooms|length }})</button>
+    <button class="tab-btn" onclick="openTab('categories', this)">Категории ({{ categories|length }})</button>
+    <button class="tab-btn" onclick="openTab('services', this)">Услуги ({{ services|length }})</button>
+    <button class="tab-btn" onclick="openTab('users', this)">Клиенты ({{ users|length }})</button>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div style="background: #d4edda; color: #155724; padding: 1rem; border: 1px solid #c3e6cb; margin-bottom: 2rem;">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div id="analytics" class="tab-content active">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Активные брони</h3>
+            <div class="number">{{ active_bookings }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Всего бронирований</h3>
+            <div class="number">{{ total_bookings }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Зарегистрировано клиентов</h3>
+            <div class="number">{{ total_users }}</div>
+        </div>
+    </div>
+</div>
+
+<div id="bookings" class="tab-content">
+    <h2 style="margin-bottom: 1.5rem; color: var(--primary);">Управление бронированиями</h2>
+    <div class="premium-table-wrapper">
+        <table class="premium-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Номер</th>
+                <th>Даты</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+                <th>Действие</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>#{{ booking.id }}</td>
+                <td>{{ booking.user.username }}</td>
+                <td>№{{ booking.room.number }}</td>
+                <td>{{ booking.check_in|date:"d.m" }} - {{ booking.check_out|date:"d.m" }}</td>
+                <td style="font-weight: bold; color: var(--primary);">{{ booking.total_price }} ₽</td>
+                <td>
+                        <span class="status-badge status-{{ booking.status }}">
+                            {{ booking.get_status_display }}
+                        </span>
+                </td>
+                <td>
+                    <form method="post" action="?tab=bookings" style="display: flex; gap: 5px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                            <select name="new_status" class="custom-select" style="margin-bottom:0; padding:5px;">
+                                <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Новая</option>
+                                <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Подтвердить</option>
+                                <option value="canceled" {% if booking.status == 'canceled' %}selected{% endif %}>Отменить</option>
+                            </select>
+                            <button type="submit" name="change_status" value="1" class="btn-main" style="padding: 5px 10px;">OK</button>
+                        </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center;">Заявок на бронирование пока нет.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="rooms" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="color: var(--primary);">Номерной фонд</h2>
+        <a href="{% url 'room_add' %}" class="btn-outline-dark">+ Добавить номер</a>
+    </div>
+    <div class="premium-table-wrapper">
+        <table class="premium-table">
+            <thead>
+            <tr>
+                <th>Комната</th>
+                <th>Категория</th>
+                <th>Вместимость</th>
+                <th>Цена/Ночь</th>
+                <th>Статус</th>
+                <th>Управление</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for room in rooms %}
+            <tr>
+                <td><strong>№{{ room.number }}</strong></td>
+                <td>{{ room.category.name }}</td>
+                <td>{{ room.capacity }} чел.</td>
+                <td>{{ room.price_per_night }} ₽</td>
+                <td>
+                    {% if room.is_active %}
+                    <span class="status-badge status-confirmed">Активен</span>
+                    {% else %}
+                    <span class="status-badge status-canceled">Скрыт</span>
+                    {% endif %}
+                </td>
+                <td style="display: flex; gap: 10px;">
+                    <a href="{% url 'room_edit' room.id %}" class="btn-outline-dark"
+                       style="padding: 0.4rem 1rem; font-size: 0.8rem;">Изменить</a>
+
+                    <form method="post" action="{% url 'room_delete' room.id %}"
+                          onsubmit="return confirm('Вы уверены, что хотите удалить этот номер?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-outline-dark"
+                                style="padding: 0.4rem 1rem; font-size: 0.8rem; border-color: #dc3545; color: #dc3545;">
+                            Удалить
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">Номера не добавлены.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="categories" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="color: var(--primary);">Категории номеров</h2>
+        <a href="{% url 'category_add' %}" class="btn-outline-dark">+ Добавить категорию</a>
+    </div>
+    <div class="premium-table-wrapper">
+        <table class="premium-table">
+            <thead>
+            <tr>
+                <th>Название</th>
+                <th>Slug</th>
+                <th>Управление</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td><strong>{{ cat.name }}</strong></td>
+                <td>{{ cat.slug }}</td>
+                <td style="display: flex; gap: 10px;">
+                    <a href="{% url 'category_edit' cat.id %}" class="btn-outline-dark"
+                       style="padding: 0.4rem 1rem; font-size: 0.8rem;">Изменить</a>
+
+                    <form method="post" action="{% url 'category_delete' cat.id %}"
+                          onsubmit="return confirm('Удалить категорию? Все номера этой категории могут быть удалены!');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-outline-dark"
+                                style="padding: 0.4rem 1rem; font-size: 0.8rem; border-color: #dc3545; color: #dc3545;">
+                            Удалить
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align: center;">Категории не созданы.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="users" class="tab-content">
+    <h2 style="margin-bottom: 1.5rem; color: var(--primary);">База клиентов</h2>
+    <div class="premium-table-wrapper">
+        <table class="premium-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Email</th>
+                <th>Дата регистрации</th>
+                <th>Роль</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td><strong>{{ u.username }}</strong></td>
+                <td>{{ u.email|default:"Не указан" }}</td>
+                <td>{{ u.date_joined|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if u.is_superuser %}
+                    <span class="status-badge status-canceled">Админ</span>
+                    {% else %}
+                    <span class="status-badge status-pending">Клиент</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center;">Пользователей пока нет.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="services" class="tab-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2 style="color: var(--primary);">Дополнительные услуги</h2>
+        <a href="{% url 'service_add' %}" class="btn-outline-dark">+ Добавить услугу</a>
+    </div>
+    <div class="premium-table-wrapper">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Цена</th>
+                    <th>Статус</th>
+                    <th>Управление</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in services %}
+                <tr>
+                    <td><strong>{{ s.name }}</strong><br><small>{{ s.description|truncatechars:50 }}</small></td>
+                    <td>{{ s.price }} ₽</td>
+                    <td>
+                        {% if s.is_active %}
+                        <span class="status-badge status-confirmed">Активна</span>
+                        {% else %}
+                        <span class="status-badge status-canceled">Отключена</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{% url 'service_edit' s.id %}" class="btn-outline-dark" style="padding: 0.5rem 1rem;">Изменить</a>
+                            <form action="{% url 'service_delete' s.id %}" method="post" onsubmit="return confirm('Удалить услугу?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-outline-dark" style="color: red; border-color: red;">Удалить</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="{% static 'core/js/adminTabs.js' %}"></script>
+{% endblock %}

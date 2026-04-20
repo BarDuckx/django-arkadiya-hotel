@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="room-detail-layout">
+    <div>
+        {% if room.image %}
+        <img src="{{ room.image.url }}" class="room-detail-img" alt="Фото">
+        {% else %}
+        <img src="/media/hotel/no_photo.jpg" class="room-detail-img">
+        {% endif %}
+
+        <h1 style="font-size: 3.5rem; margin-top: 2rem; color: var(--primary);">{{ room.category.name }}</h1>
+        <p style="text-transform: uppercase; letter-spacing: 2px; color: var(--gray); margin-bottom: 2rem;">Комната №{{ room.number }} · До {{ room.capacity }} гостей</p>
+
+        <div style="font-size: 1.1rem; line-height: 1.8; color: var(--dark);">
+            {{ room.description|linebreaks }}
+        </div>
+    </div>
+
+    <div class="booking-box">
+        <h2 style="font-size: 2rem; margin-bottom: 1rem; color: var(--primary);">Бронирование</h2>
+        <p style="font-size: 1.5rem; font-family: 'Cormorant Garamond', serif; margin-bottom: 2rem;">{{ room.price_per_night }} ₽ <span
+                    style="font-size: 1rem; font-family: 'Montserrat', sans-serif;">/ ночь</span></p>
+
+        {% block extra_head %}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://npmcdn.com/flatpickr/dist/l10n/ru.js"></script>
+        {% endblock %}
+
+        <form method="post" id="booking-form">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 1.5rem;">
+                <label>Выберите даты проживания</label>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="flex: 1;">
+                        <label>Дата заезда</label>
+                        <input type="text" id="id_check_in" name="check_in" class="custom-input"
+                               placeholder="Выберите дату" required style="background: white; cursor: pointer;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Дата выезда</label>
+                        <input type="text" id="id_check_out" name="check_out" class="custom-input"
+                               placeholder="Выберите дату" required style="background: white; cursor: pointer;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label>Количество гостей</label>
+                <input type="number" id="id_guests" name="guests" min="1" max="{{ room.capacity }}" value="1"
+                       class="custom-input" required>
+            </div>
+
+            <div class="booking-summary" style="margin-bottom: 1.5rem;">
+                <p>Ночей: <span id="nights">0</span></p>
+                <p style="font-weight: bold; font-size: 1.2rem;">Итого: <span id="total">0</span> ₽</p>
+            </div>
+
+            <input type="hidden" id="price-per-night" value="{{ room.price_per_night|stringformat:'f' }}">
+            <div id="occupied-dates" data-dates='{{ occupied_dates|safe }}' style="display: none;"></div>
+
+            <button type="submit" class="btn-outline-dark"
+                    style="width: 100%; background: var(--primary); color: white;">Оформить бронь
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'core/js/booking.js' %}"></script>
+{% endblock %}

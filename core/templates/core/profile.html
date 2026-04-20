@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h1 class="section-title">Кабинет гостя</h1>
+
+<div class="premium-table-wrapper">
+    <h2 style="margin-bottom: 2rem; font-family: 'Montserrat', sans-serif; font-size: 1.2rem; text-transform: uppercase;">Мои бронирования</h2>
+    <table class="premium-table">
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Даты проживания</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td><strong>{{ booking.room.category.name }}</strong><br><span style="color: var(--gray); font-size: 0.8rem;">Комната №{{ booking.room.number }}</span></td>
+                <td>{{ booking.check_in|date:"d.m.Y" }} — {{ booking.check_out|date:"d.m.Y" }}</td>
+                <td style="font-family: 'Cormorant Garamond', serif; font-size: 1.2rem;">{{ booking.total_price }} ₽</td>
+                <td>
+                    <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">У вас пока нет активных бронирований.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

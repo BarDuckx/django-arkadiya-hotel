@@ -1,0 +1,16 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="auth-wrapper">
+    <div class="form-card" style="max-width: 600px;">
+        <h2>{{ title }}</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn-full">Сохранить</button>
+                <a href="{% url 'custom_admin' %}" class="btn-outline-dark" style="width: 100%; text-align: center; padding: 1.2rem;">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
