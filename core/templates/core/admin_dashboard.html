@@ -55,6 +55,7 @@
                 <th>Даты</th>
                 <th>Сумма</th>
                 <th>Статус</th>
+                <th>Способ оплаты</th>
                 <th>Действие</th>
             </tr>
             </thead>
@@ -70,6 +71,13 @@
                         <span class="status-badge status-{{ booking.status }}">
                             {{ booking.get_status_display }}
                         </span>
+                </td>
+                <td>
+                    {% if b.payment_method == 'online' %}
+                        <span class="badge">ЮKassa {% if b.is_paid %}(Оплачено){% else %}(Ждет оплаты){% endif %}</span>
+                    {% else %}
+                        Оплата на месте
+                    {% endif %}
                 </td>
                 <td>
                     <form method="post" action="?tab=bookings" style="display: flex; gap: 5px;">

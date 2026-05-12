@@ -52,6 +52,11 @@ class Booking(models.Model):
         ('completed', 'Завершена'),
     ]
 
+    PAYMENT_METHODS = [
+        ('online', 'Предоплата'),
+        ('arrival', 'Оплата при заселении'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings', verbose_name="Клиент")
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='bookings', verbose_name="Номер")
     check_in = models.DateField(verbose_name="Дата заезда")
@@ -65,6 +70,9 @@ class Booking(models.Model):
     phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Контактный телефон")
     email_guest = models.EmailField(null=True, blank=True, verbose_name="Email гостя")
     extra_services = models.ManyToManyField(ExtraService, blank=True, verbose_name="Доп. услуги")
+    payment_method = models.CharField(max_length=20,choices=PAYMENT_METHODS,default='arrival',verbose_name="Способ оплаты")
+    payment_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="ID платежа ЮKassa")
+    is_paid = models.BooleanField(default=False, verbose_name="Оплачено")
 
     def clean(self):
         if self.check_in >= self.check_out:

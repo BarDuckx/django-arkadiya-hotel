@@ -11,6 +11,8 @@ from django.contrib.auth.models import User
 import json
 from datetime import datetime, timedelta
 from django.utils import timezone
+from yookassa import Configuration, Payment
+import uuid
 
 
 def index(request):
@@ -122,6 +124,7 @@ def checkout(request):
 def process_checkout(request):
     if request.method == 'POST':
         form = GuestDetailsForm(request.POST)
+        payment_method = request.POST.get('payment_method')
         temp_data = request.session.get('temp_booking')
 
         if form.is_valid() and temp_data:
@@ -144,8 +147,34 @@ def process_checkout(request):
                 passport=form.cleaned_data['passport'],
                 phone=form.cleaned_data['phone'],
                 email_guest=form.cleaned_data.get('email', ''),
-                total_price=room.price_per_night * (check_out_date - check_in_date).days * int(temp_data['guests'])
+                total_price=room.price_per_night * (check_out_date - check_in_date).days * int(temp_data['guests']),
+                payment_method = payment_method,
+                status = 'pending'
             )
+
+            if payment_method == 'online':
+                payment = Payment.create({
+                    "amount": {
+                        "value": str(booking.total_price),
+                        "currency": "RUB"
+                    },
+                    "confirmation": {
+                        "type": "redirect",
+                        "return_url": request.build_absolute_uri('/profile/')
+                    },
+                    "capture": True,
+                    "description": f"Бронирование №{booking.id}",
+                    "metadata": {
+                        "booking_id": booking.id
+                    }
+                }, uuid.uuid4())
+
+                booking.payment_id = payment.id
+                booking.save()
+
+                return redirect(payment.confirmation.confirmation_url)
+
+            return redirect('profile')
 
             service_ids = request.POST.getlist('services')
             if service_ids:

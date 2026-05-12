@@ -5,11 +5,27 @@
 
 <h1 class="section-title">Номерной фонд</h1>
 
-<div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 4rem;">
-    <a href="?category=" class="btn-outline-dark">Все номера</a>
-    {% for cat in categories %}
-        <a href="?category={{ cat.slug }}" class="btn-outline-dark">{{ cat.name }}</a>
-    {% endfor %}
+<div class="filters-container">
+    <div class="rooms-filters-desktop">
+        <a href="?category=" class="btn-outline-dark {% if not request.GET.category %}active{% endif %}">Все номера</a>
+        {% for cat in categories %}
+            <a href="?category={{ cat.slug }}" 
+               class="btn-outline-dark {% if request.GET.category == cat.slug %}active{% endif %}">
+               {{ cat.name }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <div class="rooms-filters-mobile">
+    <select id="mobile-filter-select" class="filter-select" onchange="window.location.href=this.value;">
+        <option value="{% url 'room_list' %}" {% if not request.GET.category %}selected{% endif %}>Все номера</option>
+        {% for cat in categories %}
+            <option value="{% url 'room_list' %}?category={{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>
+                {{ cat.name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
 </div>
 
 <div class="rooms-grid" id="roomsGrid">

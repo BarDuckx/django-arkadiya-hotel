@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-
+from yookassa import Configuration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,9 +28,16 @@ SECRET_KEY = 'django-insecure-wte51_)%+mp=v0!+lq&hnfaad!%&0mvzk%2w)8z4alkuoju%&l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.railway.app', 'localhost', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+ALLOWED_HOSTS = ['.railway.app', 'localhost', '127.0.0.1', 'bijrn-95-189-77-229.run.pinggy-free.link']
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.getenv(
+        'CSRF_TRUSTED_ORIGINS',
+        'https://django-arkadiya-hotel-production.up.railway.app,http://django-arkadiya-hotel-production.up.railway.app,https://bijrn-95-189-77-229.run.pinggy-free.link'
+    ).split(',')
+]
 
+Configuration.account_id = '1356597'
+Configuration.secret_key = 'test_Rkw-SewqvUkuvHxOjEl_Y6bRsRA2atNDagcYq3beZfI'
 
 # Application definition
 

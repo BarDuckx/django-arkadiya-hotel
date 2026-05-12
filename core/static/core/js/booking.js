@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
         minDate: "today",
         dateFormat: "Y-m-d",
         locale: "ru",
+        disableMobile: "true",
         disable: occupiedDates,
         onChange: function (selectedDates, dateStr) {
             if (selectedDates.length > 0) {
@@ -48,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         minDate: "today",
         dateFormat: "Y-m-d",
         locale: "ru",
+        disableMobile: "true",
         disable: occupiedDates,
         onChange: function () {
             calculate();
@@ -55,8 +57,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function updateTotals(nights, total) {
-        if(nightsField) nightsField.textContent = nights;
-        if(totalField) totalField.textContent = total;
+        if (nightsField) nightsField.textContent = nights;
+        if (totalField) totalField.textContent = total;
     }
 
     function calculate() {
@@ -77,12 +79,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if(guestsInput) guestsInput.addEventListener("change", calculate);
+    if (guestsInput) guestsInput.addEventListener("change", calculate);
 
-    document.getElementById("booking-form").addEventListener("submit", function(e) {
+    document.getElementById("booking-form").addEventListener("submit", function (e) {
         if (!checkInInput.value || !checkOutInput.value) {
             e.preventDefault();
-            if(window.showErrorToast) window.showErrorToast("Пожалуйста, выберите даты заезда и выезда.");
+            if (window.showErrorToast) window.showErrorToast("Пожалуйста, выберите даты заезда и выезда.");
         }
     });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileSelect = document.getElementById('mobile-filter-select');
+    if (mobileSelect) {
+        mobileSelect.addEventListener('change', function() {
+            if (this.value) {
+                window.location.href = this.value;
+            }
+        });
+    }
 });
